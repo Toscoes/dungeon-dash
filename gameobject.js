@@ -71,7 +71,7 @@ export default class GameObject {
 
     update() {
         if (this.sprite)
-        this.sprite.animate()
+            this.sprite.animate()
     }
     onCollision(other) {}
 }

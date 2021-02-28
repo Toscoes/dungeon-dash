@@ -40,10 +40,9 @@ export default class Oni extends Enemy {
             id: 1,
             onChange: function(oni) {
                 oni.sprite.set(Data.oni.casting)
-                console.log(oni.sprite.loop)
             },
             behavior: function(oni) {
-                if (oni.castTick > CastCooldown + 60) {
+                if (oni.castTick > CastCooldown + 180) {
                     oni.changeState(Oni.State.Default)
                 }
             }

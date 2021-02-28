@@ -18,33 +18,27 @@ export default class Player extends GameObject {
         this.dashPower = 90
 
         this.crashed = false
+        this.state = 0
+
+        this.score = 0
+
+        this.changeState(Player.State.Default)
     }
 
     update() {
+        super.update()
 
-        if (!this.dashing) {
-            if (Globals.distance(this.bearingX, this.bearingY, this.x,this.y) > Globals.InactiveCursorRadius) {
-                let rads = Globals.radBetweenPoint(this.x, this.y, this.bearingX, this.bearingY)
-                this.dx = this.speed * Math.cos(rads)
-                this.dy = this.speed * Math.sin(rads)
-            } else {
-                this.dx *= (Math.abs(this.dx) < Globals.Epsilon? 0 : Globals.Mu)
-                this.dy *= (Math.abs(this.dy) < Globals.Epsilon? 0 : Globals.Mu)
-            }
+        let angle = (Globals.radBetweenPoint(this.bearingX,this.bearingY,this.x,this.y) / Math.PI) * 180
+        this.sprite.flip = angle < 90 && angle > -90
 
-            let angle = (Globals.radBetweenPoint(this.bearingX,this.bearingY,this.x,this.y) / Math.PI) * 180
-            this.sprite.flip = angle < 90 && angle > -90
-        }
+        if (this.behavior)
+        this.behavior(this)
+    }
 
-        if (this.dashing) {
-            if (this.dashTick == 20) {
-                this.dashing = false
-                this.crashed = false
-            }
-            this.dx *= .8
-            this.dy *= .8
-            this.dashTick++
-        }
+    changeState(state) {
+        this.state = state.id
+        state.onChange(this)
+        this.behavior = state.behavior
     }
 
     onCollision(other) {
@@ -59,11 +53,62 @@ export default class Player extends GameObject {
             let rads = Globals.radBetweenPoint(this.x, this.y, x, y)
             this.dx = this.dashPower * Math.cos(rads)
             this.dy = this.dashPower * Math.sin(rads)
+            this.changeState(Player.State.Dashing)
         }
     }
 
     moveTo(x,y) {
         this.bearingX = x
         this.bearingY = y
+    }
+
+    static State = {
+        Default: {
+            id: 0,
+            onChange: function(player) {
+                player.sprite.set(Data.player.sprite)
+            },
+            behavior: function(player) {
+                if (Globals.distance(player.bearingX, player.bearingY, player.x,player.y) > Globals.InactiveCursorRadius) {
+                    player.changeState(Player.State.Moving)
+                } else {
+                    player.dx *= (Math.abs(player.dx) < Globals.Epsilon? 0 : Globals.Mu)
+                    player.dy *= (Math.abs(player.dy) < Globals.Epsilon? 0 : Globals.Mu)
+                }
+                
+            }
+        },
+        Moving: {
+            id: 1,
+            onChange: function(player) {
+                player.sprite.set(Data.player.moving)
+            },
+            behavior: function(player) {
+                if (Globals.distance(player.bearingX, player.bearingY, player.x,player.y) > Globals.InactiveCursorRadius) {
+                    let rads = Globals.radBetweenPoint(player.x, player.y, player.bearingX, player.bearingY)
+                    player.dx = player.speed * Math.cos(rads)
+                    player.dy = player.speed * Math.sin(rads)
+                } else {
+                    player.changeState(Player.State.Default)
+                }
+
+            }
+        },
+        Dashing: {
+            id: 2,
+            onChange: function(player) {
+                player.sprite.set(Data.player.dashing)
+            },
+            behavior: function(player) {
+                if (player.dashTick == 20) {
+                    player.dashing = false
+                    player.crashed = false
+                    player.changeState(Player.State.Default)
+                }
+                player.dx *= .8
+                player.dy *= .8
+                player.dashTick++
+            }
+        }
     }
 }

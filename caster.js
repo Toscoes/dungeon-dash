@@ -1,21 +1,54 @@
 import Enemy from "./enemy.js";
 import Data from "./entitydata.js";
 import Projectile from "./projectile.js"
+import GameObject from "./gameobject.js";
 import Globals from "./globals.js"
+import Player from "./player.js"
 
 export default class Caster extends Enemy {
     
+    static Instances = []
+
     constructor(x,y) {
         super(x,y,Data.caster)
         this.fireTick = 0
         this.fireRate = 120
 
         this.changeState(Caster.State.Default)
+
+        Caster.Instances.push(this)
+    }
+
+    static new(x,y) {
+        let instance = GameObject.getInactive(Caster.Instances)
+        if (instance) {
+            return instance.revive(x,y)
+        } else {
+            return new Caster(x,y)
+        }
+    }
+
+    revive(x,y) {
+        super.revive(x,y,Data.caster)
+        this.fireTick = 0
+        this.fireRate = 120
+        this.changeState(Caster.State.Default)
+
+        return this
     }
 
     update() {
         super.update()
         this.fireTick++
+    }
+
+    onCollision(other) {
+        if (other instanceof Player) {
+            if (other.dashing) {
+                this.active = false
+                other.score++
+            }
+        }
     }
 
     fire() {

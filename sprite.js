@@ -9,24 +9,12 @@ export default class Sprite {
         this.height = data.height
         this.frames = data.frames
         this.currentFrame = 0
-        this.animationSpeed = 1
+        this.animationSpeed = data.speed || 1
         this.flip = false
         this.loop = true
         this.frozen = false
         this.rotation = 0
         this.tick = 0
-    }
-
-    compare(other) {
-        if (this.y == other.y) {
-            if (this.z == other.z) {
-                return 0
-            } else {
-                return this.z < other.z? -1 : 1
-            }
-        } else {
-            return this.y < other.y? -1 : 1
-        }
     }
 
     set(data) {
@@ -35,23 +23,21 @@ export default class Sprite {
         this.width = data.width
         this.height = data.height
         this.frames = data.frames
-        this.loop = data.loop || data.loop? true : false
+        this.loop = true
         this.animationSpeed = data.speed || 1
+        this.frozen = false
 
         this.tick = 0
         this.currentFrame = 0
     }
 
     animate() {
-        if (this.frames > 1) {
-            if (this.loop) {
-                this.currentFrame = Math.floor(this.tick % this.frames)
-            } else {
-                this.currentFrame = Math.min(this.frames, Math.floor(this.tick % this.frames))
+        if (this.frames > 1 && !this.frozen) {
+            if (!this.loop && this.tick / (this.frames - 1) > 1) {
+                    return
             }
-            if (!this.frozen) {
-                this.tick += this.animationSpeed
-            }
+            this.currentFrame = Math.floor(this.tick % this.frames)
+            this.tick += this.animationSpeed
         }
     }
 }

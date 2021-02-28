@@ -14,6 +14,21 @@ export default {
             width: 8,
             height: 8,
             frames: 1
+        },
+        dashing: {
+            sx: 8,
+            sy: 64,
+            width: 8,
+            height: 8,
+            frames: 1,
+        },
+        moving: {
+            sx: 0,
+            sy: 72,
+            width: 8,
+            height: 8,
+            frames: 6,
+            speed: 0.2
         }
     },
     caster: {
@@ -43,13 +58,14 @@ export default {
                 radius: 16
             },
             sprite: {
-                sx: 16,
-                sy: 24,
+                sx: 0,
+                sy: 48,
                 width: 8,
                 height: 8,
-                frames: 1
+                frames: 7,
+                speed: 0.4,
             },
-            speed: 8
+            speed: 15
         }
     },
     turtle: {
@@ -102,7 +118,7 @@ export default {
             height: 8,
             frames: 4,
             loop: false,
-            speed : 0.1
+            speed : 0.05
         }
     },
     bandit: {
@@ -112,18 +128,26 @@ export default {
             radius: 32
         },
         sprite: {
-            sx: 64,
-            sy: 40,
+            sx: 0,
+            sy: 88,
             width: 8,
             height: 8,
             frames: 1
         },
         dashing: {
-            sx: 72,
-            sy: 40,
+            sx: 8,
+            sy: 88,
             width: 8,
             height: 8,
             frames: 1
+        },
+        moving: {
+            sx: 0,
+            sy: 96,
+            width: 8,
+            height: 8,
+            frames: 6,
+            speed: 0.2
         }
     }
 }

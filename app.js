@@ -2,11 +2,14 @@ import GameObject from "./gameobject.js"
 import Player from "./player.js"
 import Arena from "./arena.js"
 import Globals from "./globals.js"
+import Data from "./entitydata.js"
 import Caster from "./caster.js"
 import Turtle from "./turtle.js"
 import BinaryTree from "./zindexer.js"
 import Oni from "./oni.js"
 import Bandit from "./bandit.js"
+import Projectile from "./projectile.js"
+import Enemy from "./enemy.js"
 
 const canvas = document.querySelector("canvas")
 const context = canvas.getContext("2d")
@@ -14,6 +17,12 @@ const context = canvas.getContext("2d")
 const debug1 = document.querySelector("p:nth-child(1)")
 const debug2 = document.querySelector("p:nth-child(2)")
 const debug3 = document.querySelector("p:nth-child(3)")
+
+const score = document.getElementById("score")
+const gameOverBox = document.getElementById("game-over")
+gameOverBox.querySelector("button").addEventListener("click", ()=>{
+    location.reload()
+})
 
 const Display = {
     width: 2400,
@@ -37,32 +46,30 @@ function fetchImage(imageName) {
 }
 
 let Spritesheet = null
+let Arena1Floor = null
 async function init() {
     Spritesheet = await fetchImage("tiny.png")
+    Arena1Floor = await fetchImage("arena2.png")
     requestAnimationFrame(main)
 }
 
-const TestArena = new Arena(1000, 1000)
-const player = new Player(TestArena.width/2, TestArena.height/2)
-const caster = new Caster(300,600)
-
-const oni = new Oni(250,150)
-const bandit = new Bandit(600,600)
-
-bandit.setTarget(player)
-
-caster.setTarget(player)
-
-const turtle = new Turtle(600,300)
-turtle.setTarget(player)
+const MainArena = new Arena(1000, 1000)
+const player = new Player(MainArena.width/2, MainArena.height/2)
 
 const View = {
-    x: TestArena.width/2,
-    y: TestArena.height/2
+    x: MainArena.width/2,
+    y: MainArena.height/2
 }
 
 let Paused = false
 let Debug = false
+let GameOver = false
+
+let tick = 0
+let maxEnemyCap = 16
+let enemyCap = 5
+let spawnRate = 80
+let diffInc = 200
 
 function draw() {
 
@@ -87,6 +94,8 @@ function draw() {
 
     let sprites = zIndexer.getInOrder(zIndexer.root)
 
+    context.drawImage(Arena1Floor, -View.x + Display.halfWidth, -View.y + Display.halfHeight, MainArena.width, MainArena.height)
+
     sprites.forEach( object => {
         context.setTransform(object.sprite.flip? -1 : 1,0,0,1,object.x - View.x + Display.halfWidth,object.y - View.y + Display.halfHeight)
         context.rotate(object.rotation)
@@ -105,8 +114,10 @@ function draw() {
     context.resetTransform()
     context.beginPath()
     context.strokeStyle="white"
-    context.rect(-View.x + Display.halfWidth, -View.y + Display.halfHeight, TestArena.width, TestArena.height)
+    context.rect(-View.x + Display.halfWidth, -View.y + Display.halfHeight, MainArena.width, MainArena.height)
     context.stroke()
+
+    
 
 }
 
@@ -114,7 +125,7 @@ function update() {
     GameObject.Instances.forEach(object => {
         if (object.active) {
             object.update()
-            TestArena.keepBounds(object)
+            MainArena.keepBounds(object)
 
             GameObject.Instances.forEach(other => {
                 if (object.active && object.collider.collides(other.collider)) {
@@ -126,10 +137,42 @@ function update() {
         }
     })
     onKeysHeld(keysHeld)
+
+    if (tick % spawnRate == 0 && Enemy.getNumActive() < enemyCap) 
+        spawnEnemy()
+
+    if (tick % diffInc == 0 && enemyCap < maxEnemyCap) {
+        enemyCap++
+        spawnRate -= 5
+    }
+
+    tick++
+
+    score.innerText = player.score
+
+    if (!player.active) {
+        GameOver = true
+        gameOverBox.style.display = "block"
+    }
+}
+
+function spawnEnemy() {
+    let r = Math.random()
+
+    let x = Math.random() * MainArena.width
+    let y = Math.random() * MainArena.height
+
+    if ( r < .75) {
+        let b = Bandit.new(x,y)
+        b.setTarget(player)
+    } else {
+        let c = Caster.new(x,y)
+        c.setTarget(player)
+    }
 }
 
 function main() {
-    if (!Paused) {
+    if (!Paused && !GameOver) {
         context.resetTransform()
         context.clearRect(0,0,context.canvas.width, context.canvas.height)
         update()

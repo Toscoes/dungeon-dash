@@ -1,5 +1,6 @@
 import GameObject from "./gameobject.js";
 import Arena from "./arena.js";
+import Player from "./player.js";
 
 export default class Projectile extends GameObject {
     constructor(shooter,data) {
@@ -28,12 +29,15 @@ export default class Projectile extends GameObject {
     }
 
     update() {
-
+        super.update()
     }
 
     onCollision(other) {
         if (other instanceof Arena) {
             this.active = false
+        }
+        if (other instanceof Player) {
+            other.active = false
         }
     }
 }
